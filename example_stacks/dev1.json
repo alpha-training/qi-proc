@@ -21,16 +21,13 @@
       "pkg": "wdb",
       "port_offset": 12,
       "subscribe_to": {
-        "tp1": []
+        "tp1": "*"
       },
       "hdb": "hdb1"
     },
     "hdb1": {
       "pkg": "hdb",
-      "port_offset": 13,
-      "subscribe_to": {
-        "tp1": []
-      }
+      "port_offset": 13
     },
     "binance1": {
       "pkg": "binance",
