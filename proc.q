@@ -29,7 +29,7 @@ init:{[]
     show a;
     '"Could not find ",$[cn;"name=",n;"pkg=",pr]];
   self::(1#.q),first 0!me;
-  `.ipc.conns upsert select name,proc:pkg,port from a;
+  `.ipc.conns upsert select name,proc:pkg,port from a where name<>.proc.self`name;
   name::self`name;
   .qi.import self`pkg;
   system"p ",.qi.tostr self`port;

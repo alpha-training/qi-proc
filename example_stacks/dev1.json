@@ -40,6 +40,10 @@
     "alpaca1": {
       "pkg": "alpaca",
       "port_offset": 102
+    },
+    "kraken1": {
+      "pkg": "kraken",
+      "port_offset": 103
     }
   }
 }
