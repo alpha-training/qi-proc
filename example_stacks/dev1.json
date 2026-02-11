@@ -14,7 +14,7 @@
       "pkg": "rdb",
       "port_offset": 11,
       "subscribe_to": {
-        "tp1": "*"
+          "tp1": "*"
       }
     },
     "wdb1": {

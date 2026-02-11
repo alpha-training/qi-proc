@@ -71,6 +71,22 @@ getstacks:{[ns] raze{[d;st] `stackname xcols update stackname:st from 0!d[st]`pr
 loadstacks[`.stacks;.conf.STACKS];
 loadstacks[`.estacks;` sv .qi.pkgs[`proc],`example_stacks];
 
+subscribe:{
+  if[not nosubs:(::)~sd:.proc.self`subscribe_to;
+      nosubs:0=count sd];
+  if[nosubs;'".proc.subscribe requires a subscribe_to entry in the process config"];
+  if[count w:where null h:.ipc.conn each k:key sd;
+    "Could not connect to ",","sv string k w];
+  {[h;x] 
+    t:`;s:`;
+    if[not x~a:`$"*";
+      if[11=abs tx:type x;t:(),x];
+      if[99=tx;
+        t:key x;
+        s:@[g;where a~'g:get x;:;`]]];
+    h({[t;s](.u.sub[t;s];`.u `i`L)};t;s)}'[h;sd]
+  }
+
 /
 loadstack:{[f]
   procs:(r:.qi.parsej f)`processes;
