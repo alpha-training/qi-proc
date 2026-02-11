@@ -46,9 +46,9 @@ loadstack:{[ns;p]
   d:`hostname`base_port!"Sj";
   cfg:{(k#x)$(k:key[x]inter key y)#y}[d;a];
   if[not`hostname in key cfg;cfg:cfg,enlist[`hostname]!enlist`localhost];
-  def:`pkg`cmd`hostname`port_offset`taskset`args`depends_on`port!(`;"";`;0N;"";();();0N);
+  def:`pkg`cmd`hostname`port_offset`taskset`args`depends_on`subscribe_to`port!(`;"";`;0N;"";();();()!();0N);
   pkgs:([]name:key v)!key[def]#/:def,/:get v:sp;
-  r:update`$pkg,7h$port_offset,`$depends_on,7h$port from pkgs;
+  r:update`$pkg,7h$port_offset,`$depends_on,`$subscribe_to,7h$port from pkgs;
   r:update hostname:cfg`hostname,port:port_offset+cfg`base_port from r where null port,not null port_offset;
   r:update port:cfg`base_port from r where pkg=`hub;
   sv[`;ns,first` vs last` vs p]set d,enlist[`processes]!enlist r;
