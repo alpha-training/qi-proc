@@ -43,15 +43,15 @@ loadstack:{[ns;p]
   sp:(a:.qi.readj p)`processes;
   pk:`$get[sp][;`pkg];
   if[count err:pk except `hdb,exec k from .qi.packages;show .qi.packages;'"Invalid package(s): ",","sv string err];
-  d:`hostname`base_port!"Sj";
+  d:`hostname`base_port!("S";7h);
   cfg:{(k#x)$(k:key[x]inter key y)#y}[d;a];
   if[not`hostname in key cfg;cfg:cfg,enlist[`hostname]!enlist`localhost];
   def:`pkg`cmd`hostname`port_offset`taskset`args`depends_on`subscribe_to`port!(`;"";`;0N;"";();();()!();0N);
-  pkgs:([]name:key v)!key[def]#/:def,/:get v:sp;
+  pkgs:([]name:key sp)!(key[def]#/:def,/:get sp),'([]options:key[def]_/:get sp);
   r:update`$pkg,7h$port_offset,`$depends_on,`$subscribe_to,7h$port from pkgs;
   r:update hostname:cfg`hostname,port:port_offset+cfg`base_port from r where null port,not null port_offset;
   r:update port:cfg`base_port from r where pkg=`hub;
-  sv[`;ns,first` vs last` vs p]set d,enlist[`processes]!enlist r;
+  sv[`;ns,first` vs last` vs p]set cfg,enlist[`processes]!enlist r;
   }
 
 loadstacks:{[ns;dir]
@@ -66,7 +66,7 @@ loadstacks:{[ns;dir]
     '"Duplicate processes found on the same host/port"];
   }
 
-getstacks:{[ns] raze{[d;st] `stackname xcols update stackname:st from 0!d[st]`processes}[d]each 1_key d:get ns}
+getstacks:{[ns] raze{[d;st] `stackname xcols update stackname:st from 0!d[st]`processes}[d]each 1_key d:$[null ns;`.stacks;get ns]}
 
 loadstacks[`.stacks;.conf.STACKS];
 loadstacks[`.estacks;` sv .qi.pkgs[`proc],`example_stacks];
@@ -78,7 +78,7 @@ subscribe:{[x]
       nosubs:0=count sd];
     if[nosubs;'".proc.subscribe requires a subscribe_to entry in the process config, or a subscription argument"]];
   if[count w:where null h:.ipc.conn each k:key sd;
-    "Could not connect to ",","sv string k w];
+    '"Could not connect to ",","sv string k w];
   {[h;x] 
     t:`;s:`;
     if[not x~a:`$"*";
@@ -89,18 +89,10 @@ subscribe:{[x]
     h({[t;s](.u.sub[t;s];`.u `i`L)};t;s)}'[h;sd]
   }
 
-/
-loadstack:{[f]
-  procs:(r:.qi.parsej f)`processes;
-  if[count invalid:except[p:`$distinct get procs[;`proc]]vp:key .qi.readj[.qi.getindex 0b]`procs;
-    :log.error"Invalid process type: ",sv[",";string invalid],". Must be one of: ",","sv string vp];
-  .qi.addproc each p;
-  .conf,:1#.q;
-  d:`version`stack`host`base_port!"*SSj";
-  .conf,:cfg:{(k#x)$(k:key[x]inter key y)#y}[d;r];
-  def:`proc`cmd`port_offset`taskset`args`depends_on`port!(`;"";0N;"";();();0N);
-  procs:([]name:key v)!key[def]#/:def,/:get v:r`processes;
-  .conf.procs:update`$proc,7h$port_offset,`$depends_on,7h$port from procs;
-  update port:port_offset+cfg`base_port from`.conf.procs where null port,not null port_offset;
-  update port:cfg`base_port from`.conf.procs where proc=`c2;
- }
+replay:{[x]
+  if[99=type x;:.z.s each get x];
+  x[0;;0]set'x[0;;1];
+  if[not null first l:x 1;
+    .log.info"Replaying ",.Q.s1 l;
+    -11!l];
+  }
