@@ -15,28 +15,23 @@ quit:{[senderinfo]
   exit 0;
   }
 
-init:{[]
-  if[null st:.conf.DEFAULT_STACK^$[`stackname in k:key o:.qi.opts;`$o`stackname;ACTIVE_STACK];
-    '"A stackname argument must be provided"];
+init:{[namestack]
+  nm:first vp:` vs .qi.tosym namestack;
+  if[null st:.conf.DEFAULT_STACK^first[1_vp]^ACTIVE_STACK;
+    '"A stackname must be provided"];
   ACTIVE_STACK::st;
   if[e:(::)~d:.stacks st;
     if[(::)~d:.estacks st;
       '"There are no valid stacks of the name ",string st];
     .stacks[st]:d];
   a:d`processes;
-  if[not count me:$[cn:count n:o`name;select from a where name=`$n;cp:count pr:o`proc;select from a where pkg=`$pr;()];
-    if[me~();assert];
+  if[not count me:select from a where name=nm;
     show a;
-    '"Could not find ",$[cn;"name=",n;"pkg=",pr]];
+    '"Could not find a ",string[nm]," process in the ",string[st]," stack"];
   self::(1#.q),first 0!me;
   `.ipc.conns upsert select name,proc:pkg,port from a where name<>.proc.self`name;
-  name::self`name;
-  .qi.import self`pkg;
+  name::nm;
   system"p ",.qi.tostr self`port;
-  /name::pname;
- / if[not null hubaddr;
-  /  .qi.loadf(.qi.pkgs.proc;`hubclient.q);
-  /  hub.init[pname;hubaddr]];
  }
  
 loadstack:{[ns;p]
