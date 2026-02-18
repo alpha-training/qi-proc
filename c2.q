@@ -58,18 +58,14 @@ kill:{
 os.isup:$[.qi.WIN;
         {[pid] 0<count @[system;"tasklist /FI \"PID eq ",p,"\" | find \"",(p:.qi.tostr pid),"\"";""]};
         {[pid] 0<count @[system;"ps -p ",.qi.tostr pid;""]}];
-/
+
+
 tailx:{[pname;n]
   if[()~e:entry pname;:notfound pname];
   $[.qi.isfile lf:e`log;system"tail -n ",string[n]," ",lf;"Log file not found ",lf]
-}
+ }
 
 tail:{[pname] tailx[pname;.conf.TAIL_ROWS]}
 
 
 bounce:{[x] up x;down x}
-
-
-
-
-nohup /opt/kx/bin/q "qi.q massive1" < /dev/null >> /home/iwickham/qihome/qi/logs/process/massive.log  2>&1 &
