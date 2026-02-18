@@ -25,12 +25,12 @@ init:{[namestack]
    / if[(::)~d:.estacks st;
     '"There are no valid stacks of the name ",string st];
   /.stacks[st]:d;
-  a:d`processes;
-  if[not count me:select from a where name=nm;
-    show a;
+  mystack::d`processes;
+  if[not count me:select from mystack where name=nm;
+    show mystack;
     '"Could not find a ",string[nm]," process in the ",string[st]," stack"];
   self::(1#.q),first 0!me;
-  `.ipc.conns upsert select name,proc:pkg,port from a where name<>.proc.self`name;
+  `.ipc.conns upsert select name,proc:pkg,port from mystack where name<>.proc.self`name;
   name::nm;
   system"p ",.qi.tostr self`port;
   .qi.local[(`.qi;`pids;st;` sv nm,`pid)]0:enlist string .z.i;
@@ -45,9 +45,10 @@ loadstack:{[ns;p]
   if[not`hostname in key cfg;cfg:cfg,enlist[`hostname]!enlist`localhost];
   def:`pkg`cmd`hostname`port_offset`taskset`args`depends_on`subscribe_to`port!(`;"";`;0N;"";();();()!();0N);
   pkgs:([]name:key sp)!(key[def]#/:def,/:get sp),'([]options:key[def]_/:get sp);
+  pkgs:pkgs upsert enlist`name`pkg`port_offset`args!(`hub;"hub";0f;());
   r:update`$pkg,7h$port_offset,`$depends_on,`$subscribe_to,7h$port from pkgs;
   r:update hostname:cfg`hostname,port:port_offset+cfg`base_port from r where null port,not null port_offset;
-  r:update port:cfg`base_port from r where pkg=`hub;
+  /r:update port:cfg`base_port from r where pkg=`hub;
   sv[`;ns,first` vs last` vs p]set cfg,enlist[`processes]!enlist r;
   }
 
