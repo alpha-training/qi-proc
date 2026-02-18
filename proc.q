@@ -3,6 +3,8 @@
 
 .qi.import`log
 .qi.import`ipc
+.qi.import`cron
+
 .qi.frompkg[`proc;`c2]
 .stacks,:1#.q
 /.estacks,:1#.q  / example stacks
@@ -33,7 +35,9 @@ init:{[namestack]
   `.ipc.conns upsert select name,proc:pkg,port from mystack where name<>.proc.self`name;
   name::nm;
   system"p ",.qi.tostr self`port;
-  .qi.local[(`.qi;`pids;st;` sv nm,`pid)]0:enlist string .z.i;
+  savepid[];
+  .cron.add[`.proc.reporthealth;0Np;.conf.REPORT_HEALTH_PERIOD];
+  .cron.start`;
  }
  
 loadstack:{[ns;p]

@@ -25,18 +25,16 @@ getlog:{[name] .qi.spath(processlogs;` sv name,`log)}
     {[logfile;n]system"tail -n ",.qi.tostr[n]," ",logfile}];
   }[]
 
-
-getpidsx:{[stackname]
-  $[count p:.qi.paths[;"*.pid"].qi.local`.qi`pids,stackname;
-    ((first` vs last` vs)each p)!(first read0@)each p;
-    (0#`)!enlist""]
-  }
 isstack:{x in 1_key .stacks}
 stackprocs:{exec name from .stacks[x]`processes}
 
-/// -- Public Functions
-getpids:{getpidsx ACTIVE_STACK}
-getpid:{[pname] $[.qi.exists p:.qi.local`.qi`pids,stackname,pname;first read0 p;""]}
+healthpath:{[pname;pid] .qi.local(`.qi;`health;ACTIVE_STACK;pname;pid)}
+gethealth:{[pname] e:()!();$[null pid:getpid pname;e;.qi.exists f:healthpath[pname;pid];get f;e]}
+reporthealth:{healthpath[name;.z.i]set select time:.z.p,used from .Q.w`}
+getpid:{[pname] $[.qi.exists p:healthpath[pname;`latest];get p;0Ni]}
+savepid:{healthpath[name;`latest]set .z.i}
+
+isup:not null getpid@
 
 up:{[x]
   if[isstack x;:.z.s each stackprocs x];
@@ -66,6 +64,5 @@ tailx:{[pname;n]
  }
 
 tail:{[pname] tailx[pname;.conf.TAIL_ROWS]}
-
 
 bounce:{[x] up x;down x}
