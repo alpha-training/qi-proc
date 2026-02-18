@@ -6,8 +6,8 @@
       "pkg": "tp",
       "port_offset": 10,
       "args": [
-        "-t",
-        "100"
+        "-schemas",
+        "alpaca,binance,massive"
       ]
     },
     "rdb1": {
