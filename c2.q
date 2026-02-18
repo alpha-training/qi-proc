@@ -54,6 +54,10 @@ kill:{
   if[isstack x;:os.kill each getpidsx x];
   if[count pid:getpids[]x;os.kill pid];
   }
+
+os.isup:$[.qi.WIN;
+        {[pid] 0<count @[system;"tasklist /FI \"PID eq ",p,"\" | find \"",(p:.qi.tostr pid),"\"";""]};
+        {[pid] 0<count @[system;"ps -p ",.qi.tostr pid;""]}];
 /
 tailx:{[pname;n]
   if[()~e:entry pname;:notfound pname];
