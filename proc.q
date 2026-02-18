@@ -3,8 +3,9 @@
 
 .qi.import`log
 .qi.import`ipc
+.qi.frompkg[`proc;`c2]
 .stacks,:1#.q
-.estacks,:1#.q  / example stacks
+/.estacks,:1#.q  / example stacks
 
 \d .proc
 
@@ -20,10 +21,10 @@ init:{[namestack]
   if[null st:.conf.DEFAULT_STACK^first[1_vp]^ACTIVE_STACK;
     '"A stackname must be provided"];
   ACTIVE_STACK::st;
-  if[e:(::)~d:.stacks st;
-    if[(::)~d:.estacks st;
-      '"There are no valid stacks of the name ",string st];
-    .stacks[st]:d];
+  if[(::)~d:.stacks st;
+   / if[(::)~d:.estacks st;
+    '"There are no valid stacks of the name ",string st];
+  /.stacks[st]:d;
   a:d`processes;
   if[not count me:select from a where name=nm;
     show a;
@@ -32,6 +33,7 @@ init:{[namestack]
   `.ipc.conns upsert select name,proc:pkg,port from a where name<>.proc.self`name;
   name::nm;
   system"p ",.qi.tostr self`port;
+  .qi.local[(`.qi;`pids;st;` sv nm,`pid)]0:enlist string .z.i;
  }
  
 loadstack:{[ns;p]
@@ -63,8 +65,8 @@ loadstacks:{[ns;dir]
 
 getstacks:{[ns] raze{[d;st] `stackname xcols update stackname:st from 0!d[st]`processes}[d]each 1_key d:$[null ns;`.stacks;get ns]}
 
+loadstacks[`.stacks;` sv .qi.pkgs[`proc],`example_stacks];
 loadstacks[`.stacks;.conf.STACKS];
-loadstacks[`.estacks;` sv .qi.pkgs[`proc],`example_stacks];
 
 subscribe:{[x]
   sd:x;
