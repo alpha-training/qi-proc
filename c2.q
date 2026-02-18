@@ -31,7 +31,7 @@ getpidsx:{[stackname]
     (0#`)!enlist""]
   }
 
-istack:{x in key 1_key .stacks}
+istack:{x in 1_key .stacks}
 stackprocs:{exec name from .stacks[x]`processes}
 
 /// -- Public Functions
