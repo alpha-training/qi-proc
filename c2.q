@@ -3,6 +3,7 @@
 \d .proc
 
 processlogs:.qi.path(.conf.LOGS;`process)
+getlog:{[name] .qi.spath(processlogs;` sv name,`log)}
 
 / internal functions
 {
@@ -30,31 +31,41 @@ getpidsx:{[stackname]
     ((first` vs last` vs)each p)!(first read0@)each p;
     (0#`)!enlist""]
   }
-
-istack:{x in 1_key .stacks}
+isstack:{x in 1_key .stacks}
 stackprocs:{exec name from .stacks[x]`processes}
 
 /// -- Public Functions
-
 getpids:{getpidsx ACTIVE_STACK}
 getpid:{[pname] $[.qi.exists p:.qi.local`.qi`pids,stackname,pname;first read0 p;""]}
 
 up:{[x]
   if[isstack x;:.z.s each stackprocs x];
-  / iw - os.startproc 
+  os.startproc["qi.q ",string x;getlog x];
   }
 
 down:{[x]
   if[isstack x;:.z.s each stackprocs x];
-  if[null h:.ipc.conns[x;`handle];:kill x];
+  if[null h:.ipc.conns[x;`handle];: os.kill getpids[]x];
   neg[h](`.proc.quit;select name from .proc.self);
   neg[h][];
   }
 
 kill:{
-  / iw
   if[isstack x;:os.kill each getpidsx x];
-  if[count pid:getpid x;os.kill pid];
+  if[count pid:getpids[]x;os.kill pid];
   }
+/
+tailx:{[pname;n]
+  if[()~e:entry pname;:notfound pname];
+  $[.qi.isfile lf:e`log;system"tail -n ",string[n]," ",lf;"Log file not found ",lf]
+}
+
+tail:{[pname] tailx[pname;.conf.TAIL_ROWS]}
+
 
 bounce:{[x] up x;down x}
+
+
+
+
+nohup /opt/kx/bin/q "qi.q massive1" < /dev/null >> /home/iwickham/qihome/qi/logs/process/massive.log  2>&1 &
