@@ -39,7 +39,7 @@ reporthealth:{healthpath[name;.z.i]set select time:.z.p,used from .Q.w`}
 getpid:{[pname] $[.qi.exists p:healthpath[pname;`latest];get p;0Ni]}
 savepid:{healthpath[name;`latest]set .z.i}
 
-isup:not null getpid@
+isup:{[pname] $[null getpid pname;0b;os.isup pname]}
 
 up:{[x]
   if[isstack x;:.z.s each stackprocs x];
