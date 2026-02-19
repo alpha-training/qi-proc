@@ -8,7 +8,9 @@ getlog:{[name] .qi.spath(processlogs;` sv name,`log)}
 if[0=count .qi.getconf[`QI_CMD;""];
   .conf.QI_CMD:1_{$[.z.o like"m*";"";.qi.WIN;" start /affinity ",string 0b sv -16#(0b vs 0h),(x#1b),y#0b;" taskset -c ","-"sv string(0;x-1)+y]}[.conf.CORES;.conf.FIRST_CORE]," ",.conf.QBIN];
 
+
 / internal functions
+
 {
   os.startproc:$[.qi.WIN;
     {[fileArgs;logfile]
@@ -17,7 +19,7 @@ if[0=count .qi.getconf[`QI_CMD;""];
 
     {[fileArgs;logfile]
       system"mkdir -p ",.qi.spath processlogs;
-      system"nohup ",.conf.QBIN," ",fileArgs," < /dev/null >> ",logfile,"  2>&1 &"}];
+      system"nohup ",.conf.QI_CMD," ",fileArgs," < /dev/null >> ",logfile,"  2>&1 &"}];
 
   os.kill:$[.qi.WIN;
     {[pid]system"taskkill /",.qi.tostr[pid]," /F"};
