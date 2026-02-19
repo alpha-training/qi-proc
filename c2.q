@@ -3,7 +3,7 @@
 \d .proc
 
 processlogs:.qi.path(.conf.LOGS;`process)
-getlog:{[name] .qi.spath(processlogs;` sv name,`log)}
+getlog:{[name] .qi.spath(processlogs;` sv .qi.tosym[name],`log)}
 
 if[0=count .qi.getconf[`QI_CMD;""];
   .conf.QI_CMD:1_{$[.z.o like"m*";"";.qi.WIN;" start /affinity ",string 0b sv -16#(0b vs 0h),(x#1b),y#0b;" taskset -c ","-"sv string(0;x-1)+y]}[.conf.CORES;.conf.FIRST_CORE]," ",.conf.QBIN];
@@ -54,7 +54,7 @@ isup:{[pname] $[null pid:(d:gethealth pname)`pid;0b;os.isup pid;1b;[hdel d`path;
 
 up:{[x]
   if[isstack x;:.z.s each stackprocs x];
-  os.startproc["qi.q ",string x;getlog x];
+  os.startproc[.qi.ospath[.qi.local`qi.q]," ",.qi.tostr x;getlog x];
   }
 
 down:{[x]
