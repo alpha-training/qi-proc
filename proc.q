@@ -4,10 +4,8 @@
 .qi.import`log
 .qi.import`ipc
 .qi.import`cron
-
 .qi.frompkg[`proc;`c2]
 .stacks,:1#.q
-/.estacks,:1#.q  / example stacks
 
 \d .proc
 
