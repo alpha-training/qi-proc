@@ -34,7 +34,7 @@ init:{[namestack]
   `.ipc.conns upsert select name,proc:pkg,port from mystack where name<>.proc.self`name;
   name::nm;
   system"p ",.qi.tostr self`port;
-  savepid[];
+  reporthealth[];
   .cron.add[`.proc.reporthealth;0Np;.conf.REPORT_HEALTH_PERIOD];
   .cron.start`;
  }

@@ -34,12 +34,23 @@ isstack:{x in 1_key .stacks}
 stackprocs:{exec name from .stacks[x]`processes}
 
 healthpath:{[pname;pid] .qi.local(`.qi;`health;ACTIVE_STACK;pname;pid)}
-gethealth:{[pname] e:()!();$[null pid:getpid pname;e;.qi.exists f:healthpath[pname;pid];get f;e]}
-reporthealth:{healthpath[name;.z.i]set select time:.z.p,used from .Q.w`}
-getpid:{[pname] $[.qi.exists p:healthpath[pname;`latest];get p;0Ni]}
-savepid:{healthpath[name;`latest]set .z.i}
 
-isup:{[pname] $[null getpid pname;0b;os.isup pname]}
+reporthealth:{
+  healthpath[name;`latest]set pid:.z.i;
+  healthpath[name;pid]set select time:.z.p,used from .Q.w`;
+  }
+
+gethealth:{[pname] 
+  d:enlist[`pid]!1#0Ni;
+  if[not .qi.exists p:healthpath[pname;`latest];:d];
+  if[not .qi.exists hp:healthpath[pname;pid:get p];:d];
+  (`pid`path!(pid;hp)),get hp
+  }
+
+getpid:{[pname] gethealth[pname]`pid}
+
+/ TODO - handle recycled pids
+isup:{[pname] $[null pid:(d:gethealth pname)`pid;0b;os.isup pid;1b;[hdel d`path;0b]]} 
 
 up:{[x]
   if[isstack x;:.z.s each stackprocs x];
