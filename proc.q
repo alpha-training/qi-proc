@@ -19,8 +19,9 @@ quit:{[senderinfo]
   }
 
 init:{[namestack]
+  loadstacks[];
   nm:first vp:` vs .qi.tosym namestack;
-  if[null st:.conf.DEFAULT_STACK^first[1_vp]^ACTIVE_STACK;
+  if[null st:(ds:.conf.DEFAULT_STACK)^first[1_vp]^ACTIVE_STACK;
     '"A stackname must be provided"];
   ACTIVE_STACK::st;
   if[(::)~d:.stacks st;
@@ -40,7 +41,7 @@ init:{[namestack]
   .cron.start`;
  }
  
-loadstack:{[ns;p]
+loadstack:{[p]
   sp:(a:.qi.readj p)`processes;
   pk:`$get[sp][;`pkg];
   if[count err:pk except `hdb,exec k from .qi.packages;show .qi.packages;'"Invalid package(s): ",","sv string err];
@@ -53,25 +54,23 @@ loadstack:{[ns;p]
   r:update`$pkg,7h$port_offset,`$depends_on,`$subscribe_to,7h$port from pkgs;
   r:update hostname:cfg`hostname,port:port_offset+cfg`base_port from r where null port,not null port_offset;
   /r:update port:cfg`base_port from r where pkg=`hub;
-  sv[`;ns,first` vs last` vs p]set cfg,enlist[`processes]!enlist r;
+  sv[`;`.stacks,first` vs last` vs p]set cfg,enlist[`processes]!enlist r;
   }
 
-loadstacks:{[ns;dir]
-  if[not count p:.qi.paths[dir;"*.json"];:()];
+loadstacks:{
+  if[not count p:.qi.paths[.conf.STACKS;"*.json"];
+    p,:.qi.cp[.qi.pkgs[`proc],`example_stacks,f;(.conf.STACKS;`examples;f:` sv .conf.DEFAULT_STACK,`json)]];
   d:p group last each ` vs'p;
   if[count dupes:where 1<count each d;
     -1 "\n",.Q.s dupes#d;
     '"Duplicate stack names not allowed"];
-  loadstack[ns]each get[d][;0];
-  if[count dupes:select from getstacks[ns]where 1<(count;i)fby([]hostname;port);
+  loadstack each get[d][;0];
+  if[count dupes:select from getstacks[]where 1<(count;i)fby([]hostname;port);
     show `port xasc dupes;
     '"Duplicate processes found on the same host/port"];
   }
 
-getstacks:{[ns] raze{[d;st] `stackname xcols update stackname:st from 0!d[st]`processes}[d]each 1_key d:$[null ns;`.stacks;get ns]}
-
-loadstacks[`.stacks;` sv .qi.pkgs[`proc],`example_stacks];
-loadstacks[`.stacks;.conf.STACKS];
+getstacks:{raze{[st] `stackname xcols update stackname:st from 0!.stacks[st]`processes}each 1_key .stacks}
 
 subscribe:{[x]
   sd:x;
