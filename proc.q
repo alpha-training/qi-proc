@@ -11,15 +11,15 @@
 
 ACTIVE_STACK:`$getenv`QI_STACK
 
-quit:{[senderinfo]
-  .log.info(".proc.quit called - exiting.";senderinfo);
+quit:{[sendername]
+  .log.info".proc.quit called by ",.qi.tostr[sendername],". Exiting";
   exit 0;
   }
 
 init:{[namestack]
   loadstacks[];
   nm:first vp:` vs .qi.tosym namestack;
-  if[null st:(ds:.conf.DEFAULT_STACK)^first[1_vp]^ACTIVE_STACK;
+  if[null st:.conf.DEFAULT_STACK^first[1_vp]^ACTIVE_STACK;
     '"A stackname must be provided"];
   ACTIVE_STACK::st;
   if[(::)~d:.stacks st;
@@ -31,11 +31,15 @@ init:{[namestack]
     show mystack;
     '"Could not find a ",string[nm]," process in the ",string[st]," stack"];
   self::(1#.q),first 0!me;
+  if[(`tp=self`pkg)&st=.conf.DEFAULT_STACK;
+    if[not count sch:{$[count x;`$lower","vs x;x]}.qi.getopt`schemas;
+      sch:`$.conf.DEFAULT_SCHEMAS];
+    .qi.importx[0b]each sch];
+  
   `.ipc.conns upsert select name,proc:pkg,port from mystack where name<>.proc.self`name;
   name::nm;
   system"p ",.qi.tostr self`port;
-  reporthealth[];
-  .cron.add[`.proc.reporthealth;0Np;.conf.REPORT_HEALTH_PERIOD];
+  .cron.add[`.proc.reporthealth;.z.p-.conf.REPORT_HEALTH_PERIOD;.conf.REPORT_HEALTH_PERIOD];
   .cron.start`;
  }
  

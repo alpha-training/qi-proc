@@ -31,13 +31,14 @@ if[0=count .qi.getconf[`QI_CMD;""];
   }[]
 
 isstack:{x in 1_key .stacks}
-stackprocs:{exec name from .stacks[x]`processes}
+stackprocs:{exec name from .stacks[x][`processes]where name<>.proc.name}
 
 healthpath:{[pname;pid] .qi.local(`.qi;`health;ACTIVE_STACK;pname;pid)}
 
 reporthealth:{
   healthpath[name;`latest]set pid:.z.i;
-  healthpath[name;pid]set select time:.z.p,used from .Q.w`;
+  healthpath[name;pid]set d:select time:.z.p,used,heap from .Q.w`;
+  if[.proc.name<>`hub;if[isup`hub;.ipc.ping[`hub;(`.hub.heartbeat;.proc.name;d)]]];
   }
 
 gethealth:{[pname] 
@@ -57,16 +58,13 @@ up:{[x]
   os.startproc[.qi.ospath[.qi.local`qi.q]," ",.qi.tostr x;getlog x];
   }
 
-down:{[x]
-  if[isstack x;:.z.s each stackprocs x];
-  if[null h:.ipc.conns[x;`handle];: os.kill getpids[]x];
-  neg[h](`.proc.quit;select name from .proc.self);
-  neg[h][];
-  }
+down:{$[isstack x;.z.s each stackprocs x;.ipc.ping[x;(`.proc.quit;.proc.name)]];}
 
 kill:{
-  if[isstack x;:os.kill each getpidsx x];
-  if[count pid:getpids[]x;os.kill pid];
+  if[(t:type x)within -7 -5h;:os.kill x];
+  if[t within 5 7h;:.os.kill each x];
+  if[x~.proc.ACTIVE_STACK;:.z.s each exec name from .ipc.conns];
+  $[null pid:getpid x;.log.error"Could not get pid for ",string x;os.kill pid];
   }
 
 os.isup:$[.qi.WIN;
