@@ -31,11 +31,10 @@ init:{[namestack]
     show mystack;
     '"Could not find a ",string[nm]," process in the ",string[st]," stack"];
   self::(1#.q),first 0!me;
-  if[(`tp=self`pkg)&st=.conf.DEFAULT_STACK;
+  if[`tp=self`pkg;
     if[not count sch:{$[count x;`$lower","vs x;x]}.qi.getopt`schemas;
-      sch:`$.conf.DEFAULT_SCHEMAS];
+      if[st=.conf.DEFAULT_STACK;sch:.conf.DEFAULT_SCHEMAS]];
     .qi.importx[0b]each sch];
-  
   `.ipc.conns upsert select name,proc:pkg,port from mystack where name<>.proc.self`name;
   name::nm;
   system"p ",.qi.tostr self`port;
