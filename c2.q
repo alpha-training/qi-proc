@@ -36,9 +36,9 @@ stackprocs:{exec name from .stacks[x][`processes]where name<>.proc.name}
 healthpath:{[pname;pid] .qi.local(`.qi;`health;ACTIVE_STACK;pname;pid)}
 
 reporthealth:{
-  healthpath[name;`latest]set pid:.z.i;
-  healthpath[name;pid]set d:select time:.z.p,used,heap from .Q.w`;
-  if[.proc.name<>`hub;if[isup`hub;.ipc.ping[`hub;(`.hub.heartbeat;.proc.name;d)]]];
+  healthpath[name;`latest]set pd:.z.i;
+  healthpath[name;pd]set d:select time:.z.p,used,heap from .Q.w`;
+  if[.proc.name<>`hub;if[isup`hub;.ipc.ping[`hub;(`.hub.heartbeat;.proc.name;update pid:pd from d)]]];
   }
 
 gethealth:{[pname] 
