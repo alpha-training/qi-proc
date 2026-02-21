@@ -7,7 +7,7 @@
       "port_offset": 10,
       "args": [
         "-schemas",
-        "binance"
+        "alpaca,binance,massive"
       ]
     },
     "rdb1": {
@@ -32,6 +32,21 @@
     "binance1": {
       "pkg": "binance",
       "port_offset": 100,
+      "depends_on": ["tp1"]
+    },
+    "massive1": {
+      "pkg": "massive",
+      "port_offset": 101,
+      "depends_on": ["tp1"]
+    },
+    "alpaca1": {
+      "pkg": "alpaca",
+      "port_offset": 102,
+      "depends_on": ["tp1"]
+    },
+    "kraken1": {
+      "pkg": "kraken",
+      "port_offset": 103,
       "depends_on": ["tp1"]
     }
   }
