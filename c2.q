@@ -64,7 +64,7 @@ kill:{
   if[(t:type x)within -7 -5h;:os.kill x];
   if[t within 5 7h;:.os.kill each x];
   if[x~.proc.ACTIVE_STACK;:.z.s each exec name from .ipc.conns];
-  $[null pid:getpid x;.log.error"Could not get pid for ",string x;os.kill pid];
+  $[null pid:getpid x;.qi.error"Could not get pid for ",string x;os.kill pid];
   }
 
 os.isup:$[.qi.WIN;

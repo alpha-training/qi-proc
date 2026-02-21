@@ -1,7 +1,6 @@
 / Process library
 / Communicate with hub
 
-.qi.import`log
 .qi.import`ipc
 .qi.import`cron
 .qi.frompkg[`proc;`c2]
@@ -12,7 +11,7 @@
 ACTIVE_STACK:`$getenv`QI_STACK
 
 quit:{[sendername]
-  .log.info".proc.quit called by ",.qi.tostr[sendername],". Exiting";
+  .qi.info".proc.quit called by ",.qi.tostr[sendername],". Exiting";
   exit 0;
   }
 
@@ -95,6 +94,6 @@ replay:{[x]
   if[99=type x;:.z.s each get x];
   x[0;;0]set'x[0;;1];
   if[not null first l:x 1;
-    .log.info"Replaying ",.Q.s1 l;
+    .qi.info"Replaying ",.Q.s1 l;
     -11!l];
   }
