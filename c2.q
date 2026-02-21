@@ -31,34 +31,34 @@ if[0=count .qi.getconf[`QI_CMD;""];
   }[]
 
 isstack:{x in 1_key .stacks}
-stackprocs:{exec name from .stacks[x][`processes]where name<>.proc.name}
+stackprocs:{exec name from .stacks[x][`processes]where name<>.proc.self.name}
 
-healthpath:{[pname;pid] .qi.local(`.qi;`health;ACTIVE_STACK;pname;pid)}
+healthpath:{[pname;sname;pid] .qi.local(`.qi;`health;sname;pname;pid)}
 
 reporthealth:{
-  healthpath[name;`latest]set pd:.z.i;
-  healthpath[name;pd]set d:select time:.z.p,used,heap from .Q.w`;
-  if[.proc.name<>`hub;if[isup`hub;.ipc.ping[`hub;(`.hub.heartbeat;.proc.name;update pid:pd from d)]]];
+  healthpath[nm:self.name;st:self.stackname;`latest]set pd:.z.i;
+  healthpath[nm;self.stackname;pd]set d:select time:.z.p,used,heap from .Q.w`;
+  if[nm<>`hub;if[isup[`hub;`hub];.ipc.ping[`hub;(`heartbeat;self.fullname;update pid:pd from d)]]];
   }
 
-gethealth:{[pname] 
+gethealth:{[pname;sname] 
   d:enlist[`pid]!1#0Ni;
-  if[not .qi.exists p:healthpath[pname;`latest];:d];
-  if[not .qi.exists hp:healthpath[pname;pid:get p];:d];
+  if[not .qi.exists p:healthpath[pname;sname;`latest];:d];
+  if[not .qi.exists hp:healthpath[pname;sname;pid:get p];:d];
   (`pid`path!(pid;hp)),get hp
   }
 
-getpid:{[pname] gethealth[pname]`pid}
+getpid:{[pname;sname] gethealth[pname;sname]`pid}
 
 / TODO - handle recycled pids
-isup:{[pname] $[null pid:(d:gethealth pname)`pid;0b;os.isup pid;1b;[hdel d`path;0b]]} 
+isup:{[pname;sname] $[null pid:(d:gethealth[pname;sname])`pid;0b;os.isup pid;1b;[hdel d`path;0b]]} 
 
 up:{[x]
   if[isstack x;:.z.s each stackprocs x];
   os.startproc[.qi.ospath[.qi.local`qi.q]," ",.qi.tostr x;getlog x];
   }
 
-down:{$[isstack x;.z.s each stackprocs x;.ipc.ping[x;(`.proc.quit;.proc.name)]];}
+down:{$[isstack x;.z.s each stackprocs x;.ipc.ping[x;(`.proc.quit;self.name)]];}
 
 kill:{
   if[(t:type x)within -7 -5h;:os.kill x];

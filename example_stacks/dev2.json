@@ -1,6 +1,6 @@
 {
-  "description": "Dev 1",
-  "base_port": 8000,
+  "description": "Dev 2",
+  "base_port": 9000,
   "processes": {
     "tp1": {
       "pkg": "tp",
