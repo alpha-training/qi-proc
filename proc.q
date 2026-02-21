@@ -59,15 +59,17 @@ loadstack:{[p]
 
 loadstacks:{
   if[not count p:.qi.paths[.conf.STACKS;"*.json"];
-    p,:.qi.cp[.qi.pkgs[`proc],`example_stacks,f;(.conf.STACKS;`examples;f:` sv .conf.DEFAULT_STACK,`json)]];
+    p,:{.qi.cp[x;(.conf.STACKS;`examples),last ` vs x]}each .qi.paths[.qi.pkgs[`proc],`example_stacks;"*.json"]];
   d:p group last each ` vs'p;
   if[count dupes:where 1<count each d;
     -1 "\n",.Q.s dupes#d;
     '"Duplicate stack names not allowed"];
   loadstack each get[d][;0];
-  if[count dupes:select from getstacks[]where 1<(count;i)fby([]hostname;port);
+  if[count err1:sl where max w:(sl:1_key .stacks)like/:string[pl:exec k from .qi.packages],'"*";
+    '"Cannot have a stack name that is similar to a package name: stacks=",(-3!err1)," packages=",-3!pl where max flip w];
+  if[count dupes:select from getstacks[]where 1<(count;i)fby([]stackname;hostname;port);
     show `port xasc dupes;
-    '"Duplicate processes found on the same host/port"];
+    '"Duplicate processes found on the same stackname/host/port"];
   }
 
 getstacks:{raze{[st] `stackname xcols update stackname:st from 0!.stacks[st]`processes}each 1_key .stacks}
