@@ -43,15 +43,6 @@ ipc.upd:{[procs]
   if[not .qi.ishub;if[0=count hb:select from c where name=`hub;c:((0#c)upsert enlist`name`stackname`proc`port!(`hub;`hub;`hub;.conf.HUB_PORT))upsert c]];
   `.ipc.conns upsert 0!c;
   }
-
-/addstack:{[sname]
- / if[not count a:(f:{select from getstacks[]where stackname=x})sname;
-  /  if[not count p:.qi.paths[.conf.STACKS;f:` sv sname,`json];
-   /   '"No stack found with name: ",.qi.tostr sname];
-    /loadstack p;
-   / a:f sname];
- / ipc.upd select name,proc:pkg,stackname,port from a;
- / }
  
 loadstack:{[p]
   sp:(a:.qi.readj p)`processes;
@@ -62,10 +53,8 @@ loadstack:{[p]
   if[not`hostname in key cfg;cfg:cfg,enlist[`hostname]!enlist`localhost];
   def:`pkg`cmd`hostname`port_offset`taskset`args`depends_on`subscribe_to`port!(`;"";`;0N;"";();();()!();0N);
   pkgs:([]name:key sp)!(key[def]#/:def,/:get sp),'([]options:key[def]_/:get sp);
- / pkgs:pkgs upsert enlist`name`pkg`port_offset`args!(`hub;"hub";0f;());
   r:update`$pkg,7h$port_offset,`$depends_on,`$subscribe_to,7h$port from pkgs;
   r:update hostname:cfg`hostname,port:port_offset+cfg`base_port from r where null port,not null port_offset;
-  /r:update port:.conf.HUB_PORT from r where pkg=`hub;
   sv[`;`.stacks,st:first` vs last` vs p]set cfg,enlist[`processes]!enlist r;
   ipc.upd select name,proc:pkg,stackname:st,port from r;
   }
