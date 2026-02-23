@@ -14,7 +14,7 @@ if[0=count .qi.getconf[`QI_CMD;""];
 {
   os.startproc:$[.qi.WIN;
     {[fileArgs;logfile]
-    system "cmd /c if not exist \"",p,"\" mkdir \"",(p:processlogs),"\"";
+    system "cmd /c if not exist \"",p,"\" mkdir \"",(p:.qi.spath processlogs),"\"";
     system"start /B \"\" cmd /c \"",.conf.QBIN," ",fileArgs," < NUL >> ",logfile," 2>&1\""};
 
     {[fileArgs;logfile]
