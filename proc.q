@@ -104,7 +104,7 @@ replay:{[x]
     -11!l];
   }
 
-.proc.exit:{hdel each .qi.paths[.proc.healthpath[self.name;self.stackname;()];(),"*"]}
+.proc.exit:{if[`self in key .proc;@[hdel;;`]each .qi.paths[healthpath[self.name;self.stackname;()];(),"*"]]}
 
 .cron.add[`.proc.reporthealth;0Np;.conf.REPORT_HEALTH_PERIOD];
 .event.addhandler[`.z.exit;`.proc.exit]
