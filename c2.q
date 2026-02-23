@@ -33,7 +33,7 @@ if[0=count .qi.getconf[`QI_CMD;""];
 isstack:{x in 1_key .stacks}
 stackprocs:{exec name from .stacks[x][`processes]where name<>.proc.self.name}
 
-healthpath:{[pname;sname;pid] .qi.local(`.qi;`health;sname;pname;pid)}
+healthpath:{[pname;sname;pid] .qi.local(`.qi;`health;sname;pname),pid}
 
 reporthealth:{
   healthpath[nm:self.name;st:self.stackname;`latest]set pd:.z.i;
