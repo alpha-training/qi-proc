@@ -7,19 +7,22 @@
 \d .proc
 
 stacks,:1#.q
-ACTIVE_STACK:`$getenv`QI_STACK
+self:``name`stackname`fullname!(::;`;`;`);
 
 quit:{[sendername]
   .qi.info".proc.quit called by ",.qi.tostr[sendername],". Exiting";
   exit 0;
   }
 
-init:{[namestack]
-  nm:first vp:` vs .qi.tosym namestack;
-  if[null st:.conf.DEFAULT_STACK^first[1_vp]^ACTIVE_STACK;
-    '"A stackname must be provided"];
- /self,:`name`stackname`fullname!(nm;st;` sv nm,st);
- / loadstacks st;
+ipc.upd:{[x]
+  c:(`fullname xkey .ipc.conns)upsert select name,proc:pkg,stackname,fullname,port from getstacks`;
+  .ipc.conns:`name xkey update name:?[stackname=.proc.self.stackname;name;fullname]from c;
+  }
+
+init:{[x]
+  st:.conf.DEFAULT_STACK^(n:resolvename x)`stackname;
+  self::``name`stackname`fullname!(::;nm;st;` sv(nm:n`name),st);
+  ipc.upd[];
   if[(::)~d:stacks st; '"There are no valid stacks of the name ",string st];
   if[not count me:select from(sp:d`processes)where name=nm;
     show sp;
@@ -30,18 +33,12 @@ init:{[namestack]
       if[st=.conf.DEFAULT_STACK;sch:.conf.DEFAULT_SCHEMAS]];
     .qi.importx[0b]each sch];
   system"p ",.qi.tostr self`port;
+  .cron.add[`.proc.reporthealth;0Np;.conf.REPORT_HEALTH_PERIOD];
+  .event.addhandler[`.z.exit;`.proc.exit]
   .cron.start`;
  }
 
-ipc.upd:{[procs]
-  show procs;
-  if[not[.qi.ishub]&not count select from .ipc.conns where name=`hub;
-    `.ipc.conns upsert enlist`name`proc`stackname`port!(`hub;`hub;`hub;.conf.HUB_PORT)];
-  jstacks:$[.qi.ishub;`hub;`hub,self.stackname];
-  `.ipc.conns upsert update name:` sv'(name,'stackname) from procs where not stackname in jstacks;
-  }
- 
-loadstack:{[p]
+load1stack:{[p]
   sp:(a:.qi.readj p)`processes;
   pk:`$get[sp][;`pkg];
   if[count err:pk except `hdb,exec k from .qi.packages;show .qi.packages;'"Invalid package(s): ",","sv string err];
@@ -53,7 +50,6 @@ loadstack:{[p]
   r:update`$pkg,7h$port_offset,`$depends_on,`$subscribe_to,7h$port from pkgs;
   r:update hostname:cfg`hostname,port:port_offset+cfg`base_port from r where null port,not null port_offset;
   sv[`;`stacks,st:first` vs last` vs p]set cfg,enlist[`processes]!enlist r;
-  ipc.upd select name,proc:pkg,stackname:st,port from r;
   }
 
 loadstacks:{[st]
@@ -65,12 +61,13 @@ loadstacks:{[st]
   if[count dupes:where 1<count each d;
     -1 "\n",.Q.s dupes#d;
     '"Duplicate stack names not allowed"];
-  loadstack each get[d][;0];
+  load1stack each get[d][;0];
   if[count err1:sl where max w:(sl:1_key stacks)like/:string[pl:exec k from .qi.packages],'"*";
     '"Cannot have a stack name that is similar to a package name: stacks=",(-3!err1)," packages=",-3!pl where max flip w];
   if[count dupes:select from getstacks[]where 1<(count;i)fby([]stackname;hostname;port);
     show `port xasc dupes;
     '"Duplicate processes found on the same stackname/host/port"];
+  ipc.upd[];
   }
 
 getstacks:{raze{[st] `stackname`name`fullname xcols update stackname:st,fullname:` sv'(name,'st)from 0!stacks[st]`processes}each $[null x;1_key stacks;(),x]}
@@ -102,7 +99,7 @@ replay:{[x]
   }
 
 processlogs:.qi.path(.conf.LOGS;`process)
-getlog:{[name] .qi.spath(processlogs;` sv .qi.tosym[name],`log)}
+getlog:{[x] n:resolvename x; .qi.path(processlogs;n`stackname;` sv n[`name],`log)}
 
 if[0=count .qi.getconf[`QI_CMD;""];
   .conf.QI_CMD:1_{$[.z.o like"m*";"";.qi.WIN;" start /affinity ",string 0b sv -16#(0b vs 0h),(x#1b),y#0b;" taskset -c ","-"sv string(0;x-1)+y]}[.conf.CORES;.conf.FIRST_CORE]," ",.conf.QBIN];
@@ -112,13 +109,14 @@ if[0=count .qi.getconf[`QI_CMD;""];
 
 {
   os.startproc:$[.qi.WIN;
-    {[fileArgs;logfile]
+    {[fileargs;logfile]
     system "cmd /c if not exist \"",p,"\" mkdir \"",(p:.qi.spath processlogs),"\"";
-    system"start /B \"\" cmd /c \"",.conf.QBIN," ",fileArgs," < NUL >> ",logfile," 2>&1\""};
+    system"start /B \"\" cmd /c \"",.conf.QBIN," ",fileargs," < NUL >> ",logfile," 2>&1\""};
 
-    {[fileArgs;logfile]
-      system"mkdir -p ",.qi.spath processlogs;
-      system"nohup ",.conf.QI_CMD," ",fileArgs," < /dev/null >> ",logfile,"  2>&1 &"}];
+    {[fileargs;logfile]
+      system"mkdir -p ",.qi.spath first` vs logfile;
+      .qi.info cmd:"nohup ",.conf.QI_CMD," ",fileargs," < /dev/null >> ",.qi.spath[logfile],"  2>&1 &";
+      system cmd;}];
 
   os.kill:$[.qi.WIN;
     {[pid]system"taskkill /",.qi.tostr[pid]," /F"};
@@ -130,8 +128,8 @@ if[0=count .qi.getconf[`QI_CMD;""];
   }[]
 
 isstack:{x in 1_key stacks}
-stackprocs:{exec name from stacks[x][`processes]where name<>.proc.self.name}
-
+resolvename:{k!self[k:`name`stackname]^(v 0;last 1_v:` vs x)}
+stackprocs:{[st] exec name from .ipc.conns where stackname=st}
 healthpath:{[pname;sname;pid] .qi.local(`.qi;`health;sname;pname),pid}
 
 reporthealth:{
@@ -148,9 +146,10 @@ gethealth:{[pname;sname]
   }
 
 showstatus:{[x]
-  r:select stackname,name,fullname,hostname,port from getstacks`;
+  r:select name,stackname,fullname,hostname,port from getstacks`;
   if[not null x;r:$["."in s:.qi.tostr x;select from r where fullname=x;"*"in s;select from r where (stackname like s)|(name like s)|fullname like s;select from r where(stackname=x)|name=x]];
-  show update status:`down`up .proc.isup'[name;stackname]from r
+  $[0=count r;.qi.info .qi.tostr[x]," does not match any processes / stacks";
+  show update status:`down`up .proc.isup'[name;stackname]from r];
   }
 
 getpid:{[pname;sname] gethealth[pname;sname]`pid}
@@ -167,10 +166,9 @@ down:{$[isstack x;.z.s each stackprocs x;.ipc.ping[x;(`.proc.quit;self.name)]];}
 kill:{
   if[(t:type x)within -7 -5h;:os.kill x];
   if[t within 5 7h;:.os.kill each x];
-  nm:first v:` vs x;
-  st:self.stackname^first 1_v;
-  if[x~st;:.z.s each exec name from .ipc.conns where stackname=st];
-  $[null pid:getpid[nm;st];.qi.error"Could not get pid for ",string x;os.kill pid];
+  n:resolvename x;
+  if[x~st:n`stackname;:.z.s each exec name from .ipc.conns where stackname=st];
+  $[null pid:getpid[n`name;st];.qi.error"Could not get pid for ",string x;os.kill pid];
   }
 
 os.isup:$[.qi.WIN;
@@ -187,14 +185,4 @@ tail:{[pname] tailx[pname;.conf.TAIL_ROWS]}
 
 .proc.exit:{if[not null self.name;@[hdel;;`]each .qi.paths[healthpath[self.name;self.stackname;()];(),"*"]]}
 
-{
-  nm:first vp:` vs .qi.tosym .z.x 0;
-  if[null st:$[.qi.ishub;`hub;.conf.DEFAULT_STACK^first[1_vp]^ACTIVE_STACK];
-    '"A stackname must be provided"];
-  self::``name`stackname`fullname!(::;nm;st;` sv nm,st);
-  }[];
-
-show self;
 loadstacks`
-.cron.add[`.proc.reporthealth;0Np;.conf.REPORT_HEALTH_PERIOD];
-.event.addhandler[`.z.exit;`.proc.exit]
