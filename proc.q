@@ -104,9 +104,6 @@ getlog:{[x] n:fromfullname x; .qi.path(processlogs;n 1;` sv n[0],`log)}
 if[0=count .qi.getconf[`QI_CMD;""];
   .conf.QI_CMD:1_{$[.z.o like"m*";"";.qi.WIN;" start /affinity ",string 0b sv -16#(0b vs 0h),(x#1b),y#0b;" taskset -c ","-"sv string(0;x-1)+y]}[.conf.CORES;.conf.FIRST_CORE]," ",.conf.QBIN];
 
-
-/ internal functions
-
 {
   os.startproc:$[.qi.WIN;
     {[fileargs;logfile]
