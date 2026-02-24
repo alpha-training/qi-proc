@@ -150,7 +150,7 @@ gethealth:{[pname;sname]
 showstatus:{[x]
   r:select stackname,name,fullname,hostname,port from getstacks`;
   if[not null x;r:$["."in s:.qi.tostr x;select from r where fullname=x;"*"in s;select from r where (stackname like s)|(name like s)|fullname like s;select from r where(stackname=x)|name=x]];
-  show update status:`down`up .proc.isup'[stackname;name]from r
+  show update status:`down`up .proc.isup'[name;stackname]from r
   }
 
 getpid:{[pname;sname] gethealth[pname;sname]`pid}
