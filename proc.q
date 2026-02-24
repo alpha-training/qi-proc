@@ -20,8 +20,8 @@ ipc.upd:{
   }
 
 init:{[x]
-  st:.conf.DEFAULT_STACK^(n:resolvename x)`stackname;
-  self::``name`stackname`fullname!(::;nm;st;` sv(nm:n`name),st);
+  st:last n:fromfullname x;
+  self::``name`stackname`fullname!(::;nm;st;` sv(nm:n 0),st);
   ipc.upd[];
   if[(::)~d:stacks st; '"There are no valid stacks of the name ",string st];
   if[not count me:select from(sp:d`processes)where name=nm;
@@ -99,7 +99,7 @@ replay:{[x]
   }
 
 processlogs:.qi.path(.conf.LOGS;`process)
-getlog:{[x] n:resolvename x; .qi.path(processlogs;n`stackname;` sv n[`name],`log)}
+getlog:{[x] n:fromfullname x; .qi.path(processlogs;n 1;` sv n[0],`log)}
 
 if[0=count .qi.getconf[`QI_CMD;""];
   .conf.QI_CMD:1_{$[.z.o like"m*";"";.qi.WIN;" start /affinity ",string 0b sv -16#(0b vs 0h),(x#1b),y#0b;" taskset -c ","-"sv string(0;x-1)+y]}[.conf.CORES;.conf.FIRST_CORE]," ",.conf.QBIN];
@@ -128,7 +128,8 @@ if[0=count .qi.getconf[`QI_CMD;""];
   }[]
 
 isstack:{x in 1_key stacks}
-resolvename:{k!self[k:`name`stackname]^(v 0;last 1_v:` vs x)}
+fromfullname:{(v 0;.conf.DEFAULT_STACK^last 1_v:` vs x)}
+tofullname:{$[x like"*.*";x;` sv x,.conf.DEFAULT_STACK]}
 stackprocs:{[st] exec name from .ipc.conns where stackname=st}
 healthpath:{[pname;sname;pid] .qi.local(`.qi;`health;sname;pname),pid}
 
@@ -161,14 +162,18 @@ up:{[x]
   os.startproc[.qi.ospath[.qi.local`qi.q]," ",.qi.tostr x;getlog x];
   }
 
-down:{$[isstack x;.z.s each stackprocs x;.ipc.ping[x;(`.proc.quit;self.name)]];}
+down:{
+    if[isstack x;.z.s each stackprocs x;:(::)];
+    nm:$[self.stackname=last n:fromfullname x;n 0;` sv n];
+    .ipc.ping[nm;(`.proc.quit;self.name)];
+  }
 
 kill:{
   if[(t:type x)within -7 -5h;:os.kill x];
   if[t within 5 7h;:.os.kill each x];
-  n:resolvename x;
-  if[x~st:n`stackname;:.z.s each exec name from .ipc.conns where stackname=st];
-  $[null pid:getpid[n`name;st];.qi.error"Could not get pid for ",string x;os.kill pid];
+  n:fromfullname x;
+  if[x~st:n 1;:.z.s each exec name from .ipc.conns where stackname=st];
+  $[null pid:getpid[n 0;st];.qi.error"Could not get pid for ",string x;os.kill pid];
   }
 
 os.isup:$[.qi.WIN;
