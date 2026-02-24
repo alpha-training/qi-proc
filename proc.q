@@ -122,7 +122,7 @@ if[0=count .qi.getconf[`QI_CMD;""];
 
   os.kill:$[.qi.WIN;
     {[pid]system"taskkill /",.qi.tostr[pid]," /F"};
-    {[pid]system"kill ",.qi.tostr pid}];
+    {[pid] system"kill -9 ",.qi.tostr pid}];
 
   os.tail:$[.qi.WIN;
     {[logfile;n]system"cmd /C powershell -Command Get-Content ",.os.towin[logfile]," -Tail ",.qi.tostr n};
@@ -167,8 +167,10 @@ down:{$[isstack x;.z.s each stackprocs x;.ipc.ping[x;(`.proc.quit;self.name)]];}
 kill:{
   if[(t:type x)within -7 -5h;:os.kill x];
   if[t within 5 7h;:.os.kill each x];
-  if[x~.proc.ACTIVE_STACK;:.z.s each exec name from .ipc.conns];
-  $[null pid:getpid x;.qi.error"Could not get pid for ",string x;os.kill pid];
+  nm:first v:` vs x;
+  st:self.stackname^first 1_v;
+  if[x~st;:.z.s each exec name from .ipc.conns where stackname=st];
+  $[null pid:getpid[nm;st];.qi.error"Could not get pid for ",string x;os.kill pid];
   }
 
 os.isup:$[.qi.WIN;
