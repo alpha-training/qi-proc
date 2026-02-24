@@ -14,7 +14,7 @@ quit:{[sendername]
   exit 0;
   }
 
-ipc.upd:{[x]
+ipc.upd:{
   c:(`fullname xkey .ipc.conns)upsert select name,proc:pkg,stackname,fullname,port from getstacks`;
   .ipc.conns:`name xkey update name:?[stackname=.proc.self.stackname;name;fullname]from c;
   }
@@ -67,7 +67,7 @@ loadstacks:{[st]
   if[count dupes:select from getstacks[]where 1<(count;i)fby([]stackname;hostname;port);
     show `port xasc dupes;
     '"Duplicate processes found on the same stackname/host/port"];
-  ipc.upd st;
+  ipc.upd[];
   }
 
 getstacks:{raze{[st] `stackname`name`fullname xcols update stackname:st,fullname:` sv'(name,'st)from 0!stacks[st]`processes}each $[null x;1_key stacks;(),x]}
