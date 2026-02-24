@@ -106,13 +106,13 @@ if[0=count .qi.getconf[`QI_CMD;""];
 
 {
   os.startproc:$[.qi.WIN;
-    {[fileargs;logfile]
-    system "cmd /c if not exist \"",p,"\" mkdir \"",(p:.qi.spath processlogs),"\"";
-    system"start /B \"\" cmd /c \"",.conf.QBIN," ",fileargs," < NUL >> ",logfile," 2>&1\""};
+    {[fileargs;logfolder;logpath]
+    system "cmd /c if not exist \"",logfolder,"\" mkdir \"",logfolder,"\"";    / TODO - Ian - does .qi.ospath need to be used here?
+    system"start /B \"\" cmd /c \"",.conf.QBIN," ",fileargs," < NUL >> ",logpath," 2>&1\""};
 
-    {[fileargs;logfile]
-      system"mkdir -p ",.qi.spath first` vs logfile;
-      .qi.info cmd:"nohup ",.conf.QI_CMD," ",fileargs," < /dev/null >> ",.qi.spath[logfile],"  2>&1 &";
+    {[fileargs;logfolder;logpath]
+      system"mkdir -p ",logfolder;
+      .qi.info cmd:"nohup ",.conf.QI_CMD," ",fileargs," < /dev/null >> ",logpath,"  2>&1 &";
       system cmd;}];
 
   os.kill:$[.qi.WIN;
@@ -125,8 +125,8 @@ if[0=count .qi.getconf[`QI_CMD;""];
   }[]
 
 isstack:{x in 1_key stacks}
-fromfullname:{(v 0;.conf.DEFAULT_STACK^last 1_v:` vs x)}
-tofullname:{$[x like"*.*";x;` sv x,.conf.DEFAULT_STACK]}
+fromfullname:{(v 0;.conf.DEFAULT_STACK^last 1_v:` vs x)}  / e.g. `tp1.dev1 -> `tp1`dev1
+tofullname:{$[x like"*.*";x;` sv x,.conf.DEFAULT_STACK]}  / e.g. `tp1 -> `tp1.dev1 (or `tp1.dev1 -> `tp1.dev1)
 stackprocs:{[st] exec name from .ipc.conns where stackname=st}
 healthpath:{[pname;sname;pid] .qi.local(`.qi;`health;sname;pname),pid}
 
@@ -156,7 +156,7 @@ isup:{[pname;sname] $[null pid:(d:gethealth[pname;sname])`pid;0b;os.isup pid;1b;
 
 up:{[x]
   if[isstack x;:.z.s each stackprocs x];
-  os.startproc[.qi.ospath[.qi.local`qi.q]," ",.qi.tostr x;getlog x];
+  os.startproc[.qi.ospath[.qi.local`qi.q]," ",.qi.tostr x;.qi.spath first ` vs lp;.qi.spath lp:getlog x];
   }
 
 down:{
