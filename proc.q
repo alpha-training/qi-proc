@@ -107,8 +107,9 @@ if[0=count .qi.getconf[`QI_CMD;""];
 {
   os.startproc:$[.qi.WIN;
     {[fileargs;logfolder;logpath]
-    .qi.os.ensuredir logfolder;    / TODO - Ian - does .qi.ospath need to be used here?
-    system"start /B \"\" cmd /c \"",.conf.QBIN," ",fileargs," < NUL >> ",logpath," 2>&1\""};
+    .qi.os.ensuredir logfolder;
+    .qi.info cmd:"start /B \"\" cmd /c \"",.conf.QBIN," ",fileargs," < NUL >> ",logpath," 2>&1\""
+    system cmd};
 
     {[fileargs;logfolder;logpath]
       .qi.os.ensuredir logfolder;
