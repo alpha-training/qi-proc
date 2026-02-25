@@ -107,11 +107,11 @@ if[0=count .qi.getconf[`QI_CMD;""];
 {
   os.startproc:$[.qi.WIN;
     {[fileargs;logfolder;logpath]
-    system "cmd /c if not exist \"",logfolder,"\" mkdir \"",logfolder,"\"";    / TODO - Ian - does .qi.ospath need to be used here?
+    .qi.os.ensuredir logfolder;    / TODO - Ian - does .qi.ospath need to be used here?
     system"start /B \"\" cmd /c \"",.conf.QBIN," ",fileargs," < NUL >> ",logpath," 2>&1\""};
 
     {[fileargs;logfolder;logpath]
-      system"mkdir -p ",logfolder;
+      .qi.os.ensuredir logfolder;
       .qi.info cmd:"nohup ",.conf.QI_CMD," ",fileargs," < /dev/null >> ",logpath,"  2>&1 &";
       system cmd;}];
 
