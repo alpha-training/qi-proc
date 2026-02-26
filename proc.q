@@ -28,10 +28,9 @@ init:{[x]
     show sp;
     '"Could not find a ",string[nm]," process in the ",string[st]," stack"];
   self,:first 0!me;
-  if[`tp=self`pkg;
-    if[not count sch:{$[count x;`$lower","vs x;x]}.qi.getopt`schemas;
-      if[st=.conf.DEFAULT_STACK;sch:.conf.DEFAULT_SCHEMAS]];
-    .qi.importx[0b]each sch];
+  if[not count sch:{$[count x;`$lower","vs x;x]}.qi.getopt`schemas;
+    sch:(exec pkg from sp)inter exec k from .qi.packages where kind like"feed"];
+  .qi.importx[0b]each sch;
   system"p ",.qi.tostr self`port;
   .cron.add[`.proc.reporthealth;0Np;.conf.REPORT_HEALTH_PERIOD];
   .event.addhandler[`.z.exit;`.proc.exit]
@@ -106,19 +105,10 @@ if[0=count .qi.getconf[`QI_CMD;""];
 
 {
   os.startproc:$[.qi.WIN;
-    {[fileargs;logfolder;logpath]
-    .qi.os.ensuredir logfolder;
-    .qi.info cmd:"start /B \"\" cmd /c \"",.conf.QBIN," ",fileargs," < NUL >> ",logpath," 2>&1\"";
-    system cmd};
+    {[args;logpath] (.qi.info;system)@\:"start /B \"\" cmd /c \"",.conf.QBIN," ",args," < NUL >> ",logpath," 2>&1\"";};
+    {[args;logpath] (.qi.info;system)@\:"nohup ",.conf.QI_CMD," ",args," < /dev/null >> ",logpath,"  2>&1 &";}];
 
-    {[fileargs;logfolder;logpath]
-      .qi.os.ensuredir logfolder;
-      .qi.info cmd:"nohup ",.conf.QI_CMD," ",fileargs," < /dev/null >> ",logpath,"  2>&1 &";
-      system cmd;}];
-
-  os.kill:$[.qi.WIN;
-    {[pid]system"taskkill /",.qi.tostr[pid]," /F"};
-    {[pid] system"kill -9 ",.qi.tostr pid}];
+  os.kill:$[.qi.WIN;{[pid]system"taskkill /",.qi.tostr[pid]," /F"};{[pid] system"kill -9 ",.qi.tostr pid}];
 
   os.tail:$[.qi.WIN;
     {[logfile;n]system"cmd /C powershell -Command Get-Content ",.os.towin[logfile]," -Tail ",.qi.tostr n};
@@ -157,7 +147,8 @@ isup:{[pname;sname] $[null pid:(d:gethealth[pname;sname])`pid;0b;os.isup pid;1b;
 
 up:{[x]
   if[isstack x;:.z.s each stackprocs x];
-  os.startproc[.qi.ospath[.qi.local`qi.q]," ",.qi.tostr x;.qi.spath first ` vs lp;.qi.spath lp:getlog x];
+  .qi.os.ensuredir first` vs lp:
+  os.startproc[.qi.ospath[.qi.local`qi.q]," ",.qi.tostr x;.qi.spath lp:getlog x];
   }
 
 down:{

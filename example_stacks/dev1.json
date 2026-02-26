@@ -4,11 +4,7 @@
   "processes": {
     "tp1": {
       "pkg": "tp",
-      "port_offset": 10,
-      "args": [
-        "-schemas",
-        "binance"
-      ]
+      "port_offset": 10
     },
     "rdb1": {
       "pkg": "rdb",
