@@ -1,4 +1,7 @@
-.feed.H:()
+/ Common library used by websocket feed handlers
+
+.feed.H:0#0i
+.feed.pc:{[h] .feed.H:.feed.H except h}
 
 .feed.upd:{[t;x]
   t insert x;
@@ -27,4 +30,5 @@
       .qi.fatal"Try setting the env variable:\nexport SSL_VERIFY_SERVER=NO"]];
  }
 
+.event.addhandler[`.z.pc;`.feed.pc]
 if[.qi.isproc;.cron.add[`.feed.tpreconnect;.z.p+.conf.FEED_RECONNECT;.conf.FEED_RECONNECT]];
