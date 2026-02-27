@@ -9,10 +9,7 @@
 stacks,:1#.q
 self:``name`stackname`fullname!(::;`;`;`);
 
-quit:{[sendername]
-  .qi.info".proc.quit called by ",.qi.tostr[sendername],". Exiting";
-  exit 0;
-  }
+quit:{[sender] .qi.info".proc.quit called by ",.qi.tostr[sender],". Exiting";exit 0}
 
 ipc.upd:{
   c:(`fullname xkey .ipc.conns)upsert select name,proc:pkg,stackname,fullname,port from getstacks`;
@@ -111,8 +108,8 @@ if[0=count .qi.getconf[`QI_CMD;""];
   os.kill:$[.qi.WIN;{[pid]system"taskkill /",.qi.tostr[pid]," /F"};{[pid] system"kill -9 ",.qi.tostr pid}];
 
   os.tail:$[.qi.WIN;
-    {[logfile;n]system"cmd /C powershell -Command Get-Content ",.os.towin[logfile]," -Tail ",.qi.tostr n};
-    {[logfile;n]system"tail -n ",.qi.tostr[n]," ",logfile}];
+    {[logfile;n]system"cmd /C powershell -Command Get-Content ",.qi.ospath[logfile]," -Tail ",.qi.tostr n};
+    {[logfile;n]system"tail -n ",.qi.tostr[n]," ",.qi.spath logfile}];
   }[]
 
 isstack:{x in 1_key stacks}
@@ -147,8 +144,9 @@ isup:{[pname;sname] $[null pid:(d:gethealth[pname;sname])`pid;0b;os.isup pid;1b;
 
 up:{[x]
   if[isstack x;:.z.s each stackprocs x];
-  .qi.os.ensuredir first` vs lp:
-  os.startproc[.qi.ospath[.qi.local`qi.q]," ",.qi.tostr x;.qi.spath lp:getlog x];
+  .qi.os.ensuredir first` vs lp:getlog x;
+  os.startproc[.qi.ospath[.qi.local`qi.q]," ",.qi.tostr x;.qi.spath lp];
+  lp
   }
 
 down:{
@@ -169,12 +167,7 @@ os.isup:$[.qi.WIN;
         {[pid] 0<count @[system;"tasklist /FI \"PID eq ",p,"\" | find \"",(p:.qi.tostr pid),"\"";""]};
         {[pid] 0<count @[system;"ps -p ",.qi.tostr pid;""]}];
 
-
-tailx:{[pname;n]
-  if[()~e:entry pname;:notfound pname];
-  $[.qi.exists lf:e`log;system"tail -n ",string[n]," ",lf;"Log file not found ",lf]
- }
-
+tailx:{[pname;n] $[.qi.exists l:getlog pname;os.tail[l;n];'"Log file not found: ",tostr l]}
 tail:{[pname] tailx[pname;.conf.TAIL_ROWS]}
 
 .proc.exit:{if[not null self.name;@[hdel;;`]each .qi.paths[healthpath[self.name;self.stackname;()];(),"*"]]}
