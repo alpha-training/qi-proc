@@ -23,7 +23,7 @@
         importx[0N;dw:`$"deps-win"];
         .qi.fatal"Try setting the env variable:\n$env:PATH += \";",.qi.ospath[.qi.pkgs dw],"\"; $env:SSL_VERIFY_SERVER = \"NO\""]];
     if[err like"*Protocol*";
-      if[.z.o in`l64`m64;
+      if[not .qi.WIN;
       .qi.fatal"Try setting the env variable:\nexport SSL_VERIFY_SERVER=NO"]];
  }
 
