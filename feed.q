@@ -3,11 +3,13 @@
 .feed.H:0#0i
 .feed.pc:{[h] .feed.H:.feed.H except h}
 
-.feed.upd:{[t;x]
-  t insert x;
+.feed.upd:insert
+
+.feed.pub:{[t;x]
   if[count .feed.H;
-    neg[.feed.H]@\:(`.u.upd;t;get flip get t);
-    delete from t];
+    if[count a:get t;
+      neg[.feed.H]@\:(`.u.upd;t;get flip a);
+      delete from t]];
   }
 
 .feed.tpreconnect:{
