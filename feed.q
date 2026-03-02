@@ -16,8 +16,9 @@
   }
 
 .feed.start:{[header;url]
-    if[.qi.isproc;.feed.tpreconnect[]];
-    .qi.info "Connection sequence initiated...";
+    if[.qi.isproc;.feed.tpreconnect[];
+      if[not count .feed.H;.qi.info"Could not connect to tp - switched to modular mode"]];
+    .qi.info"Connection sequence initiated...";
     if[first c:.qi.try[url;header;0Ni];
       :.qi.info"Connection success"];
     .qi.error err:c 2;
