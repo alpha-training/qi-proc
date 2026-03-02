@@ -1,7 +1,7 @@
 / Common library used by websocket feed handlers
 
 .feed.H:0#0i
-.feed.pc:{[h] .feed.H:.feed.H except h;.qi.info "tp disconnected switched to modular mode"}
+.feed.pc:{[h] .feed.H:.feed.H except h;.qi.info "tp disconnected - switched to modular mode"}
 
 .feed.upd:{[t;x]
   t insert x;
