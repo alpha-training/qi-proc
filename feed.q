@@ -1,7 +1,7 @@
 / Common library used by websocket feed handlers
 
 .feed.H:0#0i
-.feed.pc:{[h] .feed.H:.feed.H except h}
+.feed.pc:{[h] .feed.H:.feed.H except h;.qi.info "tp disconnected switched to modular mode"}
 
 .feed.upd:{[t;x]
   t insert x;
@@ -16,7 +16,7 @@
   }
 
 .feed.start:{[header;url]
-    .feed.tpreconnect[];
+    if[.qi.isproc;.feed.tpreconnect[]];
     .qi.info "Connection sequence initiated...";
     if[first c:.qi.try[url;header;0Ni];
       :.qi.info"Connection success"];
