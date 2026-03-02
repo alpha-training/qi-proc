@@ -6,7 +6,7 @@
 .feed.upd:{[t;x]
   t insert x;
   if[count .feed.H;
-    neg[.feed.H]@\:(`.u.upd;t;get flip get t);
+    -25!(.feed.H;(`.u.upd;t;get flip get t));
     delete from t];
   }
 
