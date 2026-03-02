@@ -47,6 +47,7 @@ load1stack:{[p]
   r:update`$pkg,7h$port_offset,`$depends_on,7h$port from pkgs;
   r:update hostname:cfg`hostname,port:port_offset+cfg`base_port from r where null port,not null port_offset;
   sv[`;`stacks,st:first` vs last` vs p]set cfg,enlist[`processes]!enlist r;
+  sv[`;`stackpaths,st]set p;
   }
 
 loadstacks:{[st]
