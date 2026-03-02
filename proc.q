@@ -26,7 +26,8 @@ init:{[x]
     '"Could not find a ",string[nm]," process in the ",string[st]," stack"];
   self,:first 0!me;
   if[not count sch:{$[count x;`$lower","vs x;x]}.qi.getopt`schemas;
-    sch:(exec pkg from sp)inter exec k from .qi.packages where kind like"feed"];
+    if[not count self.subscribe_to;
+      sch:(exec pkg from sp)inter exec k from .qi.packages where kind like"feed"]];
   .qi.importx[0b]each sch;
   system"p ",.qi.tostr self`port;
   .cron.add[`.proc.reporthealth;0Np;.conf.REPORT_HEALTH_PERIOD];
@@ -43,7 +44,7 @@ load1stack:{[p]
   if[not`hostname in key cfg;cfg:cfg,enlist[`hostname]!enlist`localhost];
   def:`pkg`cmd`hostname`port_offset`taskset`args`depends_on`subscribe_to`port!(`;"";`;0N;"";();();()!();0N);
   pkgs:([]name:key sp)!(key[def]#/:def,/:get sp),'([]options:key[def]_/:get sp);
-  r:update`$pkg,7h$port_offset,`$depends_on,`$subscribe_to,7h$port from pkgs;
+  r:update`$pkg,7h$port_offset,`$depends_on,7h$port from pkgs;
   r:update hostname:cfg`hostname,port:port_offset+cfg`base_port from r where null port,not null port_offset;
   sv[`;`stacks,st:first` vs last` vs p]set cfg,enlist[`processes]!enlist r;
   }
@@ -78,20 +79,22 @@ subscribe:{[x]
     '"Could not connect to ",","sv string k w];
   {[h;x] 
     t:`;s:`;
-    if[not x~a:`$"*";
-      if[11=abs tx:type x;t:(),x];
+    if[not x~a:(),"*";
+      if[10=tx:type x;t:x];
+      if[11=abs tx;t:(),x];
       if[99=tx;
         t:key x;
         s:@[g;where a~'g:get x;:;`]]];
-    h({[t;s](.u.sub[t;s];`.u `i`L)};t;s)}'[h;sd]
+    h({[t;s](.u.sub[t;s];$[.proc.self.pkg=`tp;`.u `i`L;()])};t;s)}'[h;sd]
   }
 
 replay:{[x]
   if[99=type x;:.z.s each get x];
   x[0;;0]set'x[0;;1];
-  if[not null first l:x 1;
-    .qi.info"Replaying ",.Q.s1 l;
-    -11!l];
+  if[count l:x 1;
+    if[l 0;
+      .qi.info"Replaying ",.Q.s1 l;
+      -11!l]];
   }
 
 processlogs:.qi.path(.conf.LOGS;`process)
