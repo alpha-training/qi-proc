@@ -71,22 +71,13 @@ loadstacks:{[st]
 getstacks:{raze{[st] `stackname`name`fullname xcols update stackname:st,fullname:` sv'(name,'st)from 0!stacks[st]`processes}each $[null x;1_key stacks;(),x]}
 
 subscribe:{[x]
-  sd:x;
-  if[any x~/:(`;::);
+  if[any(sd:x)~/:(`;::);
     if[not nosubs:(::)~sd:self`subscribe_to;
       nosubs:0=count sd];
     if[nosubs;'".proc.subscribe requires a subscribe_to entry in the process config, or a subscription argument"]];
   if[count w:where null h:.ipc.conn each k:key sd;
     '"Could not connect to ",","sv string k w];
-  {[h;x] 
-    t:`;s:`;
-    if[not x~a:(),"*";
-      if[10=tx:type x;t:x];
-      if[11=abs tx;t:(),x];
-      if[99=tx;
-        t:key x;
-        s:@[g;where a~'g:get x;:;`]]];
-    h({[t;s](.u.sub[t;s];$[.proc.self.pkg=`tp;`.u `i`L;()])};t;s)}'[h;sd]
+  {x(`.u.wsub;y)}'[h;sd]
   }
 
 replay:{[x]
