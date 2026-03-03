@@ -89,6 +89,8 @@ replay:{[logfile]
       -11!logfile]];
   }
 
+subinitreplay:{{initsnapshot x`snapshot;replay x`logfile;}each subscribe x;}
+
 processlogs:.qi.path(.conf.LOGS;`process)
 getlog:{[x] n:fromfullname x; .qi.path(processlogs;n 1;` sv n[0],`log)}
 
