@@ -80,9 +80,9 @@ subscribe:{[x]
   {x(`.u.wsub;y)}'[h;sd]
   }
 
-replay:{[snapshot;logfile]
-  if[99=type snapshot;:.z.s[;logfile] each get snapshot];
-  snapshot[;0]set'snapshot[;1];
+initsnapshot:{$[99=type x;.z.s each get x;x[;0]upsert'x[;1]]}
+
+replay:{[logfile]
   if[count logfile;
     if[logfile 0;
       .qi.info"Replaying ",.Q.s1 logfile;
