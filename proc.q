@@ -80,7 +80,7 @@ subscribe:{[x]
   {x(`.u.wsub;y)}'[h;sd]
   }
 
-initsnapshot:{$[99=type x;.z.s each get x;x[;0]upsert'x[;1]]}
+initsnapshot:{$[99=type x;[todo_else_remove;.z.s each get x];x[;0]upsert'x[;1]]}
 
 replay:{[logfile]
   if[count logfile;
