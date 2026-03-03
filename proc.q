@@ -80,13 +80,13 @@ subscribe:{[x]
   {x(`.u.wsub;y)}'[h;sd]
   }
 
-replay:{[x]
-  if[99=type x;:.z.s each get x];
-  x[0;;0]set'x[0;;1];
-  if[count l:x 1;
-    if[l 0;
-      .qi.info"Replaying ",.Q.s1 l;
-      -11!l]];
+replay:{[snapshot;logfile]
+  if[99=type snapshot;:.z.s[;logfile] each get snapshot];
+  snapshot[;0]set'snapshot[;1];
+  if[count logfile;
+    if[logfile 0;
+      .qi.info"Replaying ",.Q.s1 logfile;
+      -11!logfile]];
   }
 
 processlogs:.qi.path(.conf.LOGS;`process)
