@@ -28,7 +28,7 @@ init:{[x]
   if[not count sch:{$[count x;`$lower","vs x;x]}.qi.getopt`schemas;
     if[not count self.subscribe_to;
       sch:(exec pkg from sp)inter exec k from .qi.packages where kind like"feed"]];
-  .qi.importx[0b]each sch;
+  .qi.importx[`schemas]each sch;
   system"p ",.qi.tostr self`port;
   .cron.add[`.proc.reporthealth;0Np;.conf.REPORT_HEALTH_PERIOD];
   .event.addhandler[`.z.exit;`.proc.exit]
