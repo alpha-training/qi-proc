@@ -11,7 +11,7 @@
   }
 
 .feed.tpreconnect:{
-  if[count[.feed.H]<count p:.proc.self.depends_on;
+  if[count[.feed.H]<count p:.proc.self.publish_to;
     .feed.H:{x where not null x}.ipc.conn each p];
   }
 

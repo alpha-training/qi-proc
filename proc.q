@@ -42,9 +42,9 @@ load1stack:{[p]
   d:`hostname`base_port!("S";7h);
   cfg:{(k#x)$(k:key[x]inter key y)#y}[d;a];
   if[not`hostname in key cfg;cfg:cfg,enlist[`hostname]!enlist`localhost];
-  def:`pkg`cmd`hostname`port_offset`taskset`args`depends_on`subscribe_to`port!(`;"";`;0N;"";();();()!();0N);
+  def:`pkg`cmd`hostname`port_offset`taskset`args`publish_to`subscribe_to`port!(`;"";`;0N;"";();();()!();0N);
   pkgs:([]name:key sp)!(key[def]#/:def,/:get sp),'([]options:key[def]_/:get sp);
-  r:update`$pkg,7h$port_offset,`$depends_on,7h$port from pkgs;
+  r:update`$pkg,7h$port_offset,`$publish_to,7h$port from pkgs;
   r:update hostname:cfg`hostname,port:port_offset+cfg`base_port from r where null port,not null port_offset;
   sv[`;`stacks,st:first` vs last` vs p]set cfg,enlist[`processes]!enlist r;
   sv[`;`stackpaths,st]set p;
