@@ -25,11 +25,12 @@ init:{[x]
     show sp;
     '"Could not find a ",string[nm]," process in the ",string[st]," stack"];
   self,:first 0!me;
+  self.mystack:sp;
   if[not count sch:{$[count x;`$lower","vs x;x]}.qi.getopt`schemas;
-    if[not count self.subscribe_to;
+    if[not[count self.subscribe_to]&self.pkg<>`gw;
       sch:(exec pkg from sp)inter exec k from .qi.packages where kind like"feed"]];
   .qi.importx[`schemas]each sch;
-  system"p ",.qi.tostr self`port;
+  if[not system"p";system"p ",.qi.tostr self`port];
   .cron.add[`.proc.reporthealth;0Np;.conf.REPORT_HEALTH_PERIOD];
   .event.addhandler[`.z.exit;`.proc.exit]
   .cron.start`;
