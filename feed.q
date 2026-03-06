@@ -24,7 +24,7 @@
     .qi.error err:c 2;
     if[err like"*conn*";
       if[.qi.WIN;
-        importx[`fetch;dw:`$"deps-win"];
+        .qi.importx[`fetch;dw:`$"deps-win"];
         .qi.fatal"Try setting the env variable:\n$env:PATH += \";",.qi.ospath[.qi.pkgs dw],"\"; $env:SSL_VERIFY_SERVER = \"NO\""]];
     if[err like"*Protocol*";
       if[not .qi.WIN;
