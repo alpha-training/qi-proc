@@ -28,7 +28,7 @@ init:{[x]
   self,:first 0!me;
   self.mystack:sp;
   if[not count sch:{$[count x;`$lower","vs x;x]}.qi.getopt`schemas;
-    if[not[count self.subscribe_to]&self.pkg<>`gw;
+    if[not[count self.subscribe_to]& not self.pkg in`gw`hdb;
       sch:(exec pkg from sp)inter exec k from .qi.packages where kind like"feed"]];
   .qi.importx[`schemas]each sch;
   if[not system"p";system"p ",.qi.tostr self`port];
