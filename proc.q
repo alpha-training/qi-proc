@@ -12,8 +12,9 @@ self:``name`stackname`fullname!(::;`;`;`);
 quit:{[sender] .qi.info".proc.quit called by ",.qi.tostr[sender],". Exiting";exit 0}
 
 ipc.upd:{
-  c:(`fullname xkey .ipc.conns)upsert select name,proc:pkg,stackname,fullname,port from getstacks`;
-  .ipc.conns:`name xkey update name:?[stackname=.proc.self.stackname;name;fullname]from c;
+  c:(`fullname xkey select from .ipc.conns where name=`hub)upsert select fullname,name,proc:pkg,stackname,port from getstacks`;
+  c:`index xasc update index:(`hub;.proc.self.stackname)?stackname from c;
+  .ipc.conns:`name xkey delete index from(update name:fullname from c where index=2);
   }
 
 init:{[x]
@@ -37,6 +38,7 @@ init:{[x]
  }
 
 load1stack:{[p]
+  /if[p like"*dev3*";dbg];
   sp:(a:.qi.readj p)`processes;
   pk:`$get[sp][;`pkg];
   if[count err:pk except `hdb,exec k from .qi.packages;show .qi.packages;'"Invalid package(s): ",","sv string err];
@@ -47,8 +49,8 @@ load1stack:{[p]
   pkgs:([]name:key sp)!(key[def]#/:def,/:get sp),'([]options:key[def]_/:get sp);
   r:update`$pkg,7h$port_offset,`$publish_to,7h$port from pkgs;
   r:update hostname:cfg`hostname,port:port_offset+cfg`base_port from r where null port,not null port_offset;
-  sv[`;`stacks,st:first` vs last` vs p]set cfg,enlist[`processes]!enlist r;
-  sv[`;`stackpaths,st]set p;
+  sv[`;`.proc.stacks,st:first` vs last` vs p]set cfg,enlist[`processes]!enlist r;
+  sv[`;`.proc.stackpaths,st]set p;
   }
 
 loadstacks:{[st]
@@ -60,6 +62,7 @@ loadstacks:{[st]
   if[count dupes:where 1<count each d;
     -1 "\n",.Q.s dupes#d;
     '"Duplicate stack names not allowed"];
+  .proc.stacks:1#.q;
   load1stack each get[d][;0];
   if[count err1:sl where max w:(sl:1_key stacks)like/:string[pl:exec k from .qi.packages],'"*";
     '"Cannot have a stack name that is similar to a package name: stacks=",(-3!err1)," packages=",-3!pl where max flip w];
