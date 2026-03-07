@@ -117,7 +117,7 @@ isstack:{x in 1_key stacks}
 fromfullname:{(v 0;.conf.DEFAULT_STACK^last 1_v:` vs x)}  / e.g. `tp1.dev1 -> `tp1`dev1
 tofullname:{$[x like"*.*";x;` sv x,.conf.DEFAULT_STACK]}  / e.g. `tp1 -> `tp1.dev1 (or `tp1.dev1 -> `tp1.dev1)
 stackprocs:{[st] exec name from .ipc.conns where stackname=st}
-healthpath:{[pname;sname;pid] .qi.local(`.qi;`health;sname;pname),pid}
+healthpath:{[pname;sname;pid] .qi.local(`.qi;`health;sname;first` vs pname),pid}
 
 reporthealth:{
   healthpath[nm:self.name;st:self.stackname;`latest]set pd:.z.i;
@@ -127,8 +127,8 @@ reporthealth:{
 
 gethealth:{[pname;sname] 
   d:enlist[`pid]!1#0Ni;
-  if[not .qi.exists p:healthpath[pname;sname;`latest];:d];
-  if[not .qi.exists hp:healthpath[pname;sname;pid:get p];:d];
+  if[not .qi.exists p:healthpath[pn:first` vs pname;sname;`latest];:d];
+  if[not .qi.exists hp:healthpath[pn;sname;pid:get p];:d];
   (`pid`path!(pid;hp)),get hp
   }
 
